@@ -5,7 +5,7 @@
 // The word: Timeshare. An ex as a timeshare: you bought in together,
 // now you are stuck paying every year for something you never use
 // and can never sell. One concrete thing, no caption needed.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ENTRY = `Timeshare`;
@@ -25,5 +25,15 @@ if (len < 1 || len > 111 || ENTRY.trim().length === 0 || !isSingleWord) {
 
 const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, "entry.txt"), ENTRY, "utf8");
-console.log(`Wrote ${[...ENTRY].length} characters to ${join(outDir, "entry.txt")}`);
+const outPath = join(outDir, "entry.txt");
+writeFileSync(outPath, ENTRY, "utf8");
+// Read back what was written: a partial or empty write must fail loudly
+// instead of submitting a blank entry the judge would reject.
+const written = readFileSync(outPath, "utf8");
+if (written !== ENTRY) {
+  console.error(
+    `Entry mismatch after write: expected ${JSON.stringify(ENTRY)}, got ${JSON.stringify(written)}.`,
+  );
+  process.exit(1);
+}
+console.log(`Wrote ${[...ENTRY].length} characters to ${outPath} (verified)`);
